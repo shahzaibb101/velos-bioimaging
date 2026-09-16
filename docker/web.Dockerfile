@@ -13,7 +13,11 @@ RUN npm run build
 
 FROM node:22-slim AS runtime
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
+# HOSTNAME matters. Next's standalone server binds to os.hostname() when this
+# is unset, which inside a container is the container id, so the process listens
+# on an address the platform's proxy cannot reach and every request returns 502
+# despite the deploy reporting success.
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 # Next's standalone output carries only the traced dependencies, which is a
 # fraction of node_modules and makes cold starts noticeably quicker.
 COPY --from=build /app/.next/standalone ./
