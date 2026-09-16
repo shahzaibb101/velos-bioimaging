@@ -43,53 +43,64 @@ def main() -> None:
         settle(page, 5)
         shot(page, "01-hero.png", "homepage hero, live reconstruction playing behind")
 
-        # --- 2. Capability cards ------------------------------------------
-        page.mouse.wheel(0, 4800)
-        settle(page, 2.5)
-        page.mouse.wheel(0, 900)
-        settle(page, 2.5)
-        shot(page, "02-capabilities.png", "what the pipeline does, three stages")
+        # --- 2. The pinned statement sequence -----------------------------
+        # Scroll by element rather than a guessed pixel distance: the hero is
+        # 4800px of pinned scroll and the offsets shift with viewport height.
+        page.mouse.wheel(0, 5200)
+        settle(page, 3)
+        shot(page, "02-hero-statement.png", "pinned scroller, scroll-driven character reveal")
+
+        # --- 3. Capability cards ------------------------------------------
+        page.eval_on_selector(".cards", "el => el.scrollIntoView({block: 'center'})")
+        settle(page, 3)
+        shot(page, "03-capabilities.png", "what the pipeline does, three stages")
 
         # --- 3. Platform page ---------------------------------------------
         page.goto(f"{SITE}/platform", wait_until="networkidle", timeout=60_000)
         settle(page, 3)
-        shot(page, "03-platform.png", "platform page, the physics explained")
+        shot(page, "04-platform.png", "platform page, the physics explained")
 
         # --- 4. App, before a run ------------------------------------------
         page.goto(f"{SITE}/reconstruct", wait_until="networkidle", timeout=60_000)
         page.wait_for_selector(".sample", timeout=30_000)
         settle(page, 1.5)
-        shot(page, "04-app-acquisitions.png", "reconstruction app, sample acquisitions")
+        shot(page, "05-app-acquisitions.png", "reconstruction app, sample acquisitions")
 
         # --- 5. Job running -------------------------------------------------
         page.query_selector_all(".sample")[0].click()
         page.wait_for_selector(".progress", timeout=20_000)
         settle(page, 1.2)
-        shot(page, "05-app-running.png", "job queued and running, live progress")
+        shot(page, "06-app-running.png", "job queued and running, live progress")
 
         # --- 6. The comparison viewer ---------------------------------------
         page.wait_for_selector(".viewer", timeout=180_000)
         settle(page, 3)
-        page.mouse.wheel(0, 620)
-        settle(page, 1.5)
-        shot(page, "06-app-viewer.png", "raw camera vs reconstruction, wipe comparison")
+        page.eval_on_selector(".viewer__frame", "el => el.scrollIntoView({block: 'center'})")
+        settle(page, 2)
+        shot(page, "07-app-viewer.png", "raw camera vs reconstruction, wipe comparison")
 
         # --- 7. Disagreement layer -------------------------------------------
+        # Match case-insensitively: the chips are text-transform: uppercase and
+        # inner_text() returns what is rendered, not what is in the markup.
+        clicked = False
         for button in page.query_selector_all(".app__layerpick:first-child .chip"):
-            if "Model minus physics" in (button.inner_text() or ""):
+            if "model minus physics" in (button.inner_text() or "").lower():
                 button.click()
+                clicked = True
                 break
-        settle(page, 2)
-        shot(page, "07-app-disagreement.png", "where the model departs from the physics")
+        if not clicked:
+            raise SystemExit("could not find the disagreement layer chip")
+        settle(page, 2.5)
+        shot(page, "08-app-disagreement.png", "where the model departs from the physics")
 
         # --- 8. Scores and per-cell measurements ------------------------------
-        page.mouse.wheel(0, 900)
+        page.eval_on_selector(".scorecard", "el => el.scrollIntoView({block: 'center'})")
         settle(page, 2)
-        shot(page, "08-app-scorecard.png", "three methods scored against ground truth")
+        shot(page, "09-app-scorecard.png", "three methods scored against ground truth")
 
-        page.mouse.wheel(0, 700)
+        page.eval_on_selector(".cells", "el => el.scrollIntoView({block: 'center'})")
         settle(page, 1.5)
-        shot(page, "09-app-cells.png", "per-cell dry mass table and exports")
+        shot(page, "10-app-cells.png", "per-cell dry mass table and exports")
 
         browser.close()
 

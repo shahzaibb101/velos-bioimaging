@@ -854,14 +854,18 @@
 }
 
 /* --- Inner page hero ------------------------------------------------------- */
-.page-hero { padding-block: 200px 80px; }
+.page-hero { padding-block: 176px 80px; }
 .page-hero .label { margin-bottom: 36px; }
+/* Not --text-hero-inner. That tops out at 140px, which suits a one-word page
+   title and buries a full sentence: at 1440px this ran past the fold before
+   the sentence finished. Inner pages carry sentences, so they get a scale
+   sized for one. */
 .page-hero__title {
-  font-size: var(--text-hero-inner);
-  letter-spacing: -0.03em;
-  line-height: 1;
+  font-size: clamp(2.25rem, 1.05rem + 3.8vw, 4.75rem);   /* 36 – 76px */
+  letter-spacing: -0.025em;
+  line-height: 1.05;
   margin-bottom: 36px;
-  max-width: 14ch;
+  max-width: 18ch;
   text-wrap: pretty;
 }
 .page-hero__title em { color: var(--color-lichen); font-style: normal; }
@@ -873,7 +877,7 @@
   text-wrap: pretty;
 }
 @media (min-width: 1281px) {
-  .page-hero__title { max-width: none; }
+  .page-hero__title { max-width: 16ch; }
   .page-hero > div { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,482px);
                      gap: 0 60px; align-items: end; }
   .page-hero .label { grid-column: 1 / -1; }
@@ -883,3 +887,25 @@
 /* Word wrappers from the character split. They carry no styling of their own;
    they exist so the browser has a word to break on rather than a character. */
 .hero__statement .word { display: inline-block; white-space: nowrap; }
+
+/* Skip link: the first thing a keyboard reaches, invisible until focused. */
+.skip-link {
+  background: var(--color-ink);
+  border-radius: 0 0 8px 0;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  left: 0;
+  letter-spacing: 0;
+  padding: 12px 18px;
+  position: fixed;
+  text-transform: uppercase;
+  top: 0;
+  transform: translateY(-120%);
+  transition: transform 0.2s var(--ease-house);
+  z-index: 200;
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* <main> is focused on route change; it must not draw a focus ring for that. */
+main:focus { outline: none; }

@@ -80,14 +80,24 @@ export default function Viewer({ left, right, leftLabel, rightLabel, alt = "" }:
 
   const endDrag = () => { dragging.current = null; };
 
-  const onWheel = useCallback((event: WheelEvent) => {
-    event.preventDefault();
+  const applyZoom = useCallback((factor: number) => {
     setZoom((current) => {
-      const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, current * (event.deltaY < 0 ? 1.12 : 1 / 1.12)));
+      const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, current * factor));
       setOffset((o) => clampOffset(o, next));
       return next;
     });
   }, [clampOffset]);
+
+  /* Zoom on ctrl/cmd + wheel only.
+     Capturing plain wheel would mean that scrolling the page with the pointer
+     anywhere over this panel zooms instead of scrolling, and the panel is most
+     of the viewport. Requiring the modifier also gets trackpad pinch for free,
+     since browsers report pinch as a wheel event with ctrlKey set. */
+  const onWheel = useCallback((event: WheelEvent) => {
+    if (!event.ctrlKey && !event.metaKey) return;   // let the page scroll
+    event.preventDefault();
+    applyZoom(event.deltaY < 0 ? 1.12 : 1 / 1.12);
+  }, [applyZoom]);
 
   // Attached manually because React's onWheel is passive and cannot preventDefault.
   useEffect(() => {
@@ -141,6 +151,12 @@ export default function Viewer({ left, right, leftLabel, rightLabel, alt = "" }:
             aria-label={`Wipe between ${leftLabel} and ${rightLabel}`}
           />
         </label>
+        <div className="viewer__zoomers">
+          <button className="viewer__reset" onClick={() => applyZoom(1 / 1.4)}
+                  disabled={zoom <= MIN_ZOOM + 0.001} aria-label="Zoom out">&minus;</button>
+          <button className="viewer__reset" onClick={() => applyZoom(1.4)}
+                  disabled={zoom >= MAX_ZOOM - 0.001} aria-label="Zoom in">+</button>
+        </div>
         <button
           className="viewer__reset"
           onClick={() => { setZoom(1); setOffset({ x: 0, y: 0 }); setWipe(50); }}
@@ -149,8 +165,9 @@ export default function Viewer({ left, right, leftLabel, rightLabel, alt = "" }:
         </button>
       </div>
       <p className="viewer__hint">
-        Drag to pan, scroll to zoom, drag the divider to wipe. Both panels share one transform,
-        so the comparison stays pixel aligned at any magnification.
+        Drag the divider to wipe, drag the image to pan, and zoom with the buttons or
+        ctrl-scroll. Both panels share one transform, so the comparison stays pixel aligned
+        at any magnification.
       </p>
     </div>
   );

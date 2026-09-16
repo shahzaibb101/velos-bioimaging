@@ -8,6 +8,7 @@ import {
   Job, Sample, getJob, getSamples, layerUrl, submitSample, submitUpload,
   cellsCsvUrl, phaseTiffUrl,
 } from "@/lib/api";
+import { scrollToElement } from "@/lib/lenis";
 
 const LAYER_LABELS: Record<string, string> = {
   raw: "Camera, at focus",
@@ -31,6 +32,9 @@ export default function Reconstructor() {
   const [left, setLeft] = useState("raw");
   const [right, setRight] = useState("model");
   const timer = useRef<number | null>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const lastShown = useRef<string | null>(null);
 
   useEffect(() => {
     getSamples().then(setSamples).catch((e) => setError(e.message));
@@ -69,6 +73,8 @@ export default function Reconstructor() {
       const created = await run();
       setJob(created);
       poll(created.id);
+      // Show the work starting rather than leaving the user on the picker.
+      requestAnimationFrame(() => scrollToElement(progressRef.current, { duration: 0.8 }));
     } catch (e) {
       setBusy(false);
       setError((e as Error).message);
@@ -77,6 +83,20 @@ export default function Reconstructor() {
 
   const result = job?.state === "done" ? job.result : null;
   const layers = result?.layers ?? [];
+
+  /* Results render a long way below the acquisition list, so without this the
+     job completes off-screen and nothing appears to have happened. Keyed on
+     job id so re-renders while the user is reading do not yank the page back. */
+  useEffect(() => {
+    if (!result || !job) return;
+    if (lastShown.current === job.id) return;
+    lastShown.current = job.id;
+    // After paint: the viewer has to exist before it can be scrolled to.
+    const frame = requestAnimationFrame(() =>
+      scrollToElement(resultsRef.current, { duration: 1.1 })
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [result, job]);
 
   return (
     <div className="app">
@@ -131,7 +151,7 @@ export default function Reconstructor() {
         {error && <p className="app__error" role="alert">{error}</p>}
 
         {job && job.state !== "done" && !error && (
-          <div className="progress" role="status" aria-live="polite">
+          <div className="progress" role="status" aria-live="polite" ref={progressRef}>
             <div className="progress__bar"><span style={{ transform: `scaleX(${job.progress})` }} /></div>
             <p className="progress__stage">
               {job.stage}
@@ -141,7 +161,7 @@ export default function Reconstructor() {
         )}
 
         {result && (
-          <>
+          <div ref={resultsRef}>
             <div className="app__viewer">
               <Viewer
                 left={layerUrl(job!.id, left)}
@@ -184,7 +204,7 @@ export default function Reconstructor() {
             )}
 
             <CellTable result={result} jobId={job!.id} />
-          </>
+          </div>
         )}
       </Container>
     </div>

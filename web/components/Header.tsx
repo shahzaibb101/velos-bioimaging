@@ -2,15 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Logo from "./Logo";
 import Button from "./Button";
 import Container from "./Container";
-import { startScroll, stopScroll } from "@/lib/lenis";
+import { scrollToTop, startScroll, stopScroll } from "@/lib/lenis";
 
 const NAV = [{ href: "/platform", label: "Platform" }];
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Navigating from inside the menu leaves it covering the new page otherwise,
+  // because nothing about a route change closes it on its own.
+  useEffect(() => { setOpen(false); }, [pathname]);
 
   /* `has-scrolled` drives the logo plate and fill; it lives on <html> so any
      block can respond to it without prop drilling. Threshold is 10px so it
@@ -39,7 +45,16 @@ export default function Header() {
     <>
       <header className="header">
         <Container className="header__inner">
-          <Link href="/" className="header__logo" aria-label="Velos BioImaging, home">
+          <Link
+            href="/"
+            className="header__logo"
+            aria-label="Velos BioImaging, home"
+            onClick={(event) => {
+              // Already home: scroll rather than re-navigate, which would be a
+              // no-op route change and leave the page where it was.
+              if (pathname === "/") { event.preventDefault(); scrollToTop(); }
+            }}
+          >
             <Logo />
           </Link>
 

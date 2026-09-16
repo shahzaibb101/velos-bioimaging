@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import SmoothScroll from "@/components/SmoothScroll";
 import LoadState from "@/components/LoadState";
+import ScrollReset from "@/components/ScrollReset";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -34,8 +35,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <LoadState />
         <SmoothScroll introLockMs={INTRO_LOCK_MS} />
+        <ScrollReset />
+        <a className="skip-link" href="#main">Skip to content</a>
         <Header />
-        <main id="main">{children}</main>
+        {/* tabIndex -1 so a route change can move focus here without it
+            becoming a tab stop of its own. */}
+        <main id="main" tabIndex={-1}>{children}</main>
         <Footer />
       </body>
     </html>
