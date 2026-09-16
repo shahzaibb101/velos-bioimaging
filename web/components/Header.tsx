@@ -7,10 +7,7 @@ import Button from "./Button";
 import Container from "./Container";
 import { startScroll, stopScroll } from "@/lib/lenis";
 
-const NAV = [
-  { href: "/platform", label: "Platform" },
-  { href: "/science", label: "Science" },
-];
+const NAV = [{ href: "/platform", label: "Platform" }];
 
 export default function Header() {
   const [open, setOpen] = useState(false);

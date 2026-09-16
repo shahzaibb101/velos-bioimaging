@@ -8,7 +8,6 @@ import { useInView } from "@/hooks/useInView";
 
 const NAVIGATE = [
   { href: "/platform", label: "Platform" },
-  { href: "/science", label: "Science" },
   { href: "/reconstruct", label: "Open the app" },
 ];
 
