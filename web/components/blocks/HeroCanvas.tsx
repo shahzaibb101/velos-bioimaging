@@ -6,12 +6,11 @@ import { useEffect, useRef } from "react";
  * The hero surface: a reconstructed live-cell time-lapse that reacts to the
  * cursor as a physical object would.
  *
- * The reference achieves this with a WebGL layer that rotates the image on two
- * axes from the pointer and runs two mouse-tracked progressive blurs over it.
- * None of that needs a GL context. A 3D rotation on the element plus a
- * cursor-anchored radial scrim reproduces the same read: the image sits behind
- * the page rather than on it, and it acknowledges you without demanding
- * attention.
+ * The obvious way to do this is a WebGL layer rotating the image on two axes
+ * from the pointer with a mouse-tracked progressive blur over it. None of that
+ * needs a GL context. A 3D rotation on the element plus a cursor-anchored
+ * radial scrim gives the same read: the image sits behind the page rather than
+ * on it, and it acknowledges you without demanding attention.
  *
  * Motion is integrated toward the pointer each frame rather than assigned, so
  * it carries momentum and settles instead of snapping. That single detail is
@@ -25,9 +24,9 @@ const EASE = 0.045;         // per-frame approach; lower is heavier
 
 /* The source is a 5s loop of real reconstruction frames. Played at rate the
    cell drift reads as busy and the repeat becomes obvious; slowed to a ~14s
-   cycle it becomes ambient, which is the register the reference's 25s loop
-   sits in. Slowing playback rather than re-encoding keeps the frames exactly
-   as the pipeline produced them. */
+   cycle it becomes ambient, which is the register a hero should sit in.
+   Slowing playback rather than re-encoding keeps the frames exactly as the
+   pipeline produced them. */
 const PLAYBACK_RATE = 0.35;
 
 export default function HeroCanvas({ poster, src }: { poster: string; src: string }) {

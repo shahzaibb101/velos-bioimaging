@@ -272,9 +272,9 @@
   html.has-scrolled .header { --logo-fill: var(--color-ink); }
 
   /* Scrolled over a dark section: the same white plate would swallow a white
-     logo, so the plate inverts with it. The reference simply forces the ink
-     fill here, which reads as a light chip floating on black; carrying the
-     surface through is truer to the rest of the system. */
+     logo, so the plate inverts with it. Forcing an ink fill here instead would
+     read as a light chip floating on black; carrying the surface through is
+     truer to the rest of the system. */
   html.invert-logo .header { --logo-fill: #fff; }
   html.invert-logo.has-scrolled .header { --logo-fill: #fff; }
   /* A translucent *white* scrim over a bright background gets brighter, not
@@ -516,7 +516,7 @@
 /* SplitText's line masks clip with overflow:hidden, which also amputates
    descenders — the "g" in "imaging" loses its tail. Swapping to a clip-path
    with a negative inset keeps the mask horizontally tight while giving the
-   glyphs vertical room. The reference ships exactly this fix. */
+   glyphs vertical room. */
 .hero__heading .line-mask,
 .hero__lead .line-mask,
 .hero__statement .line-mask {

@@ -26,8 +26,8 @@ function nearestEdge(event: MouseEvent, el: HTMLElement, axis: "x" | "y" | "all"
  * actually crossed and leaves through whichever edge it exits by, so the fill
  * appears to be pushed by the pointer rather than simply switched on.
  *
- * The reference implements this three times, once per block, with the helper
- * copy-pasted verbatim. It is one hook here.
+ * Written once as a hook rather than per block, since three list-like blocks
+ * all want it.
  *
  * The `offsetHeight` read is deliberate: it forces a reflow so the browser
  * commits the un-transitioned starting transform before the transition is

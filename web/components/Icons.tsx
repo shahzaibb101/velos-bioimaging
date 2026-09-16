@@ -1,6 +1,6 @@
 /**
- * Card icons, drawn as dense line art in the same idiom as the reference:
- * thin uniform strokes, geometric construction, no fills.
+ * Card icons, drawn as dense line art: thin uniform strokes, geometric
+ * construction, no fills.
  *
  * Each one is generated rather than hand-plotted, because the density that
  * makes these read as instrument diagrams (60+ strokes) is not something to

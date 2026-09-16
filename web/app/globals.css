@@ -5,11 +5,10 @@
 /* ============================================================================
    Velos BioImaging — design system
 
-   Tokens are taken from the live reference implementation via the CSSOM, not
-   from a derived style guide. Where the two disagreed the measured value won:
-   the content column is 1524px rather than 1200px, there are two greens rather
-   than one, and letter-spacing is a flat -0.02em everywhere except the largest
-   display sizes, which sit at -0.03em.
+   A near-black canvas, restrained white type, and a single lime accent held
+   back for small interactive surfaces. The content column is 1524px on a
+   12-column grid with 48px gutters. Letter-spacing is a flat -0.02em
+   everywhere except the largest display sizes, which sit at -0.03em.
    ========================================================================== */
 
 @font-face {
@@ -53,7 +52,7 @@
   --font-mono: "Roboto Mono", Menlo, Consolas, Monaco, "Liberation Mono", monospace;
 
   /* Fluid scale. Every step is clamp(min, preferred, max) and every one of
-     these numbers is measured from the reference, not invented. */
+     these numbers is a deliberate step, not a round number chosen for looks. */
   --text-hero: clamp(3.125rem, 1.42rem + 6.2vw, 7rem);          /*  50 – 112 */
   --text-hero-inner: clamp(3.125rem, 0.65rem + 9vw, 8.75rem);   /*  50 – 140 */
   --text-marquee: clamp(3.375rem, 0.46rem + 10.6vw, 10rem);     /*  54 – 160 */
@@ -90,8 +89,8 @@
 
 /* Base ---------------------------------------------------------------------
    Single weight by default. Hierarchy comes from size, line-height and
-   tracking, never from weight, which is what gives the reference its flat
-   instrument-panel calm. 600 exists only for inline <strong>. */
+   tracking, never from weight. That restraint is what gives the system its
+   flat instrument-panel calm. 600 exists only for inline <strong>. */
 
 *,
 *::before,

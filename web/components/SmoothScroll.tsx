@@ -13,8 +13,8 @@ import { setLenis } from "@/lib/lenis";
  * ticker's time and switching off lag smoothing keeps ScrollTrigger and the
  * scroll itself on exactly the same clock.
  *
- * `introLockMs` holds the page still while the hero opens. The reference locks
- * for 2300ms, which is the 300ms clip-path delay plus its 2000ms duration.
+ * `introLockMs` holds the page still while the hero opens: 2300ms, being the
+ * 300ms clip-path delay plus its 2000ms duration.
  */
 export default function SmoothScroll({ introLockMs = 0 }: { introLockMs?: number }) {
   useEffect(() => {

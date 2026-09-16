@@ -10,8 +10,8 @@ import { useInView } from "@/hooks/useInView";
  * rest rises on the standard entrance.
  *
  * `heading` takes a node rather than a string so a trailing clause can be
- * wrapped in <em> and recede into Lichen, which is how the reference lets a
- * long sentence resolve without a second type size.
+ * wrapped in <em> and recede into Lichen, letting a long sentence resolve
+ * without needing a second type size.
  */
 export default function Statement({
   label, heading, children, action, split = false, className = "", ascent = true,

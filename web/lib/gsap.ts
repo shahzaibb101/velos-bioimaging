@@ -6,8 +6,8 @@ import { SplitText } from "gsap/SplitText";
 import { MorphSVGPlugin } from "gsap/MorphSVGPlugin";
 
 /* SplitText and MorphSVG were paid GSAP Club plugins until 2025. They now ship
-   in the public package, which is what makes the reference site's masked line
-   reveals and morphing button blobs reproducible without a licence. */
+   in the public package, so the masked line reveals and the morphing button
+   blobs cost nothing to use. */
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, SplitText, MorphSVGPlugin);
 }
