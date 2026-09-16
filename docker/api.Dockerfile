@@ -53,8 +53,11 @@ ENV VELOS_DATA=/srv/data/samples \
     PORT=8000
 
 EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
-  CMD curl -fsS "http://127.0.0.1:${PORT}/api/health" || exit 1
+
+# No Docker HEALTHCHECK here. The platform runs its own probe, and a
+# container-level check that curls 127.0.0.1 against a socket bound to :: can
+# report the container unhealthy while the service is answering perfectly well
+# on every address that matters.
 
 # Bind to :: rather than 0.0.0.0. Railway's private network is IPv6-only, so a
 # service listening on IPv4 alone resolves over internal DNS and then refuses
