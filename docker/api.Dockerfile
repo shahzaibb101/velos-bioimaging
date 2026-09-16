@@ -35,12 +35,19 @@ RUN pip install --upgrade pip \
 
 # waveorder is the published baseline and is built on PyTorch, so the CPU-only
 # wheel comes in for it alone. From the CPU index this is roughly 200 MB rather
-# than the ~2.5 GB the default CUDA build would drag in. The learned model
-# still runs through ONNX Runtime; torch is here for the comparison, not for
-# inference, and `velos.baseline` degrades cleanly if it is ever dropped.
+# than the ~2.5 GB the default CUDA build would drag in.
+#
+# Installed with --no-deps deliberately. waveorder declares seventeen
+# dependencies including pyqtgraph, qtpy, ipywidgets, tensorboard and matplotlib
+# — a Qt and notebook stack for its GUI that a headless reconstruction service
+# will never touch. Tracing the actual import chain for the phase model shows it
+# needs numpy, scipy, torch, pywt and tqdm, so those are what get installed.
+#
+# The learned model still runs through ONNX Runtime; torch is here for the
+# comparison, not for inference, and velos.baseline degrades cleanly without it.
 RUN pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.2" \
  && pip install --no-deps "waveorder>=3" \
- && pip install "iohub>=0.2" "click" "pydantic" "numpy>=1.26"
+ && pip install "pywavelets>=1.1.1" "tqdm"
 
 RUN pip install --no-deps -e .
 
