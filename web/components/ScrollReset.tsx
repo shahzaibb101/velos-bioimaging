@@ -6,14 +6,22 @@ import { ScrollTrigger } from "@/lib/gsap";
 import { scrollToTop, startScroll } from "@/lib/lenis";
 
 /**
- * Put every route change back at the top of the page.
+ * Scroll behaviour across route changes.
  *
- * The App Router restores scroll itself, but it does so through the document,
- * and Lenis owns the scroll position — so the browser's reset never reaches it
- * and you land halfway down a page you have just opened.
+ * Two different intents, and they want opposite things:
  *
- * Three other things have to happen on the same transition, and each of them is
- * a bug on its own if it is missed:
+ *  - Following a link is arriving somewhere new. It belongs at the top.
+ *  - Going back is returning somewhere you have already been. It belongs where
+ *    you left it, and forcing it to the top would throw away the position the
+ *    reader is trying to get back to.
+ *
+ * The App Router restores scroll for history navigation on its own, but it
+ * does so through the document, and Lenis owns the scroll position. The two
+ * happen to settle correctly today only because the restore lands after this
+ * effect; that is a race, so back/forward is detected explicitly and left
+ * alone instead of being reset and then corrected.
+ *
+ * Three other things have to happen on every transition regardless:
  *
  *  - ScrollTrigger measures against a document that has just been replaced.
  *    The homepage pins 4800px of hero; leaving it without a refresh leaves
@@ -26,6 +34,15 @@ import { scrollToTop, startScroll } from "@/lib/lenis";
 export default function ScrollReset() {
   const pathname = usePathname();
   const first = useRef(true);
+  const cameFromHistory = useRef(false);
+
+  // popstate fires before the router commits the new pathname, so this flag is
+  // set by the time the effect below runs.
+  useEffect(() => {
+    const onPop = () => { cameFromHistory.current = true; };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   useEffect(() => {
     if (first.current) {
@@ -33,21 +50,23 @@ export default function ScrollReset() {
       return;
     }
 
+    const restoring = cameFromHistory.current;
+    cameFromHistory.current = false;
+
     startScroll();
-    scrollToTop(true);
+    if (!restoring) scrollToTop(true);
 
     // After paint, so ScrollTrigger measures the page that is actually there.
     const frame = requestAnimationFrame(() => {
       ScrollTrigger.refresh();
-      document.documentElement.classList.remove("has-scrolled");
+      document.documentElement.classList.toggle("has-scrolled", window.scrollY > 10);
     });
 
-    // Move focus to the start of the new document without stealing it into a
-    // visible focus ring: tabindex -1 makes <main> programmatically focusable.
-    const main = document.getElementById("main");
-    if (main) {
-      main.focus({ preventScroll: true });
-    }
+    // Move focus to the start of the new document without drawing a focus ring:
+    // <main> carries tabindex -1 so it is programmatically focusable only.
+    // Skipped when restoring, so returning to a page does not jump the reader
+    // back to the top of it.
+    if (!restoring) document.getElementById("main")?.focus({ preventScroll: true });
 
     return () => cancelAnimationFrame(frame);
   }, [pathname]);
