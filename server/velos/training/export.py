@@ -46,6 +46,19 @@ def export(checkpoint: Path, out_dir: Path, tile: int = 256, opset: int = 17) ->
                       "phase": {0: "batch", 2: "height", 3: "width"}},
         opset_version=opset, do_constant_folding=True,
     )
+
+    # Torch's exporter writes the weights beside the graph as external data.
+    # Two files that must travel together is a deployment hazard: ship the
+    # graph alone and the service loads a model with no weights in it. Fold
+    # everything back into one self-contained file.
+    import onnx
+
+    model = onnx.load(str(target))                     # resolves the sidecar
+    onnx.save_model(model, str(target), save_as_external_data=False)
+    sidecar = target.with_suffix(".onnx.data")
+    if sidecar.exists():
+        sidecar.unlink()
+
     return target
 
 

@@ -1,0 +1,95 @@
+{
+  "name": "Velos phase refiner",
+  "version": "2026.09.16",
+  "exported": "2026-09-16T11:39:46.109011+00:00",
+  "purpose": "Corrects a Transport of Intensity phase reconstruction using the three camera planes that produced it. Outputs phase in radians.",
+  "architecture": {
+    "type": "U-Net, 4 levels, GroupNorm, bilinear upsampling",
+    "parameters": 4074529,
+    "inputs": "4 channels: under focus, in focus, over focus, classical phase estimate",
+    "output": "1 channel: phase in radians",
+    "residual": "The network predicts a correction added to the classical solve, and its final convolution is zero-initialised. Before training it reproduces the classical solver exactly, so every learned change is a departure from a solution already anchored in the measurement."
+  },
+  "training": {
+    "data": "Simulated specimens imaged through a partially coherent forward model and a simulated sCMOS. Ground truth exists because the specimen is defined in physical units before it is imaged.",
+    "fields": 900,
+    "crops_per_field": 4,
+    "patch": 256,
+    "exposures": "bright through very low light, sampled per field",
+    "jitter": "defocus 1.15-1.95um, NA 0.37-0.43, condenser NA 0.09-0.16 per field",
+    "loss": "L1 on phase + 0.5 gradient L1 + physics consistency against re-simulated intensity",
+    "epochs_run": 30,
+    "best_epoch": 27,
+    "best_val_rmse_rad": 0.0724,
+    "classical_val_rmse_rad": 0.4878,
+    "improvement_pct": 85.1
+  },
+  "evaluation": {
+    "fields": 60,
+    "split": "held-out, shifted distribution (denser, thicker, more dividing cells)",
+    "classical": {
+      "psnr_db": 25.0592,
+      "psnr_db_p10": 21.0411,
+      "psnr_db_p90": 28.9241,
+      "ssim": 0.5875,
+      "ssim_p10": 0.4834,
+      "ssim_p90": 0.7036,
+      "rmse_rad": 0.5459,
+      "rmse_rad_p10": 0.3311,
+      "rmse_rad_p90": 0.854,
+      "correlation": 0.8515,
+      "correlation_p10": 0.7037,
+      "correlation_p90": 0.9515,
+      "mass_median_abs_pct": 22.3691,
+      "mass_median_abs_pct_p10": 12.1659,
+      "mass_median_abs_pct_p90": 31.9158,
+      "mass_bias_pct": 2.0113,
+      "mass_bias_pct_p10": -17.2957,
+      "mass_bias_pct_p90": 24.8426
+    },
+    "model": {
+      "psnr_db": 38.8747,
+      "psnr_db_p10": 36.5273,
+      "psnr_db_p90": 41.1993,
+      "ssim": 0.8815,
+      "ssim_p10": 0.8184,
+      "ssim_p90": 0.9401,
+      "rmse_rad": 0.1107,
+      "rmse_rad_p10": 0.0785,
+      "rmse_rad_p90": 0.1236,
+      "correlation": 0.9934,
+      "correlation_p10": 0.9911,
+      "correlation_p90": 0.9971,
+      "mass_median_abs_pct": 3.9501,
+      "mass_median_abs_pct_p10": 2.1888,
+      "mass_median_abs_pct_p90": 5.883,
+      "mass_bias_pct": -2.0895,
+      "mass_bias_pct_p10": -5.5079,
+      "mass_bias_pct_p90": 1.037
+    },
+    "improvement": {
+      "rmse_pct": 79.7,
+      "psnr_db_gain": 13.82,
+      "mass_error_pct_points": 18.42
+    }
+  },
+  "serving": {
+    "runtime": "onnxruntime, CPU",
+    "tiling": "256px tiles, 64px overlap, raised cosine blend",
+    "max_abs_difference": 5.09992241859436e-06,
+    "onnx_ms_per_tile": 34.8,
+    "torch_ms_per_tile": 71.6,
+    "speedup": 2.06
+  },
+  "limitations": [
+    "Trained entirely on simulated specimens. Behaviour on real microscope data is unverified and is the first thing that should be checked.",
+    "Assumes a three plane through-focus acquisition with roughly the modelled geometry. A markedly different objective, condenser or defocus is out of distribution.",
+    "Phase beyond about 2*pi is rare in the training distribution, so very thick or optically dense bodies are the least reliable region of the output.",
+    "The model corrects the classical solve and inherits its failure modes where they are severe. Where it departs strongly from the physics, check the disagreement map."
+  ],
+  "environment": {
+    "python": "3.12.2",
+    "torch": "2.14.0",
+    "platform": "macOS-26.4-arm64-arm-64bit"
+  }
+}
