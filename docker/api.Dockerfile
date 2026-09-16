@@ -59,8 +59,8 @@ EXPOSE 8000
 # report the container unhealthy while the service is answering perfectly well
 # on every address that matters.
 
-# Bind to :: rather than 0.0.0.0. Railway's private network is IPv6-only, so a
-# service listening on IPv4 alone resolves over internal DNS and then refuses
-# the connection. A dual-stack :: bind serves both the private network and the
-# public edge.
-CMD ["sh", "-c", "uvicorn velos.service.api:app --host :: --port ${PORT:-8000}"]
+# Bind on IPv4. Railway's private network is IPv6, so an IPv6-only bind is the
+# tidier answer in principle, but uvicorn sets IPV6_V6ONLY on that socket and
+# the public edge then cannot reach the service at all. The site talks to this
+# over its public domain, so IPv4 is what actually matters here.
+CMD ["sh", "-c", "uvicorn velos.service.api:app --host 0.0.0.0 --port ${PORT:-8000}"]
