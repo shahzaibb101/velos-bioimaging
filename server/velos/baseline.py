@@ -21,11 +21,30 @@ picks one from the measured shot-noise level rather than using a constant.
 from __future__ import annotations
 
 import numpy as np
-import torch
-
-from waveorder.models import isotropic_thin_3d as _thin
 
 from .optics import Optics
+
+
+def _thin_model():
+    """Import waveorder on first use, not at module import.
+
+    waveorder is built on PyTorch. Importing it at module scope makes torch a
+    hard requirement of the whole service, which would mean a container that
+    serves an ONNX model still has to carry a deep learning framework just to
+    start up. Deferring it means an environment without waveorder loses the
+    published baseline and keeps everything else, which is the correct way for
+    an optional comparison to fail.
+    """
+    from waveorder.models import isotropic_thin_3d as thin
+    return thin
+
+
+def available() -> bool:
+    try:
+        _thin_model()
+        return True
+    except Exception:
+        return False
 
 
 def regularisation_for(stack: np.ndarray, floor: float = 2e-6, ceiling: float = 4e-3) -> float:
@@ -71,9 +90,11 @@ def reconstruct(
     if stack.shape[0] != 3:
         raise ValueError("phase from defocus needs exactly three planes")
 
+    import torch
+
     strength = regularisation_for(stack) if regularization is None else regularization
 
-    absorption, phase = _thin.reconstruct(
+    absorption, phase = _thin_model().reconstruct(
         zyx_data=torch.from_numpy(np.ascontiguousarray(stack)).float(),
         yx_pixel_size=optics.pixel_size,
         z_position_list=[-optics.defocus, 0.0, optics.defocus],

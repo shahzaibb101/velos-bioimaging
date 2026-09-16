@@ -31,8 +31,18 @@ RUN pip install --upgrade pip \
  && pip install "numpy>=1.26" "scipy>=1.11" "scikit-image>=0.22" \
                 "tifffile>=2024.1.30" "imagecodecs>=2024.1.1" "Pillow>=10.2" \
                 "fastapi>=0.110" "uvicorn[standard]>=0.27" "onnxruntime>=1.17" \
-                "python-multipart>=0.0.9" \
- && pip install --no-deps -e .
+                "python-multipart>=0.0.9"
+
+# waveorder is the published baseline and is built on PyTorch, so the CPU-only
+# wheel comes in for it alone. From the CPU index this is roughly 200 MB rather
+# than the ~2.5 GB the default CUDA build would drag in. The learned model
+# still runs through ONNX Runtime; torch is here for the comparison, not for
+# inference, and `velos.baseline` degrades cleanly if it is ever dropped.
+RUN pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.2" \
+ && pip install --no-deps "waveorder>=3" \
+ && pip install "iohub>=0.2" "click" "pydantic" "numpy>=1.26"
+
+RUN pip install --no-deps -e .
 
 COPY server/models ./models
 COPY server/data/samples ./data/samples

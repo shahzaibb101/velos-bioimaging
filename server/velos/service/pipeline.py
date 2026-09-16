@@ -130,6 +130,13 @@ def run(
         detail="FFT Poisson inverse. Assumes weak absorption, which holds for most live cells.",
     ))
 
+    if include_waveorder and not baseline.available():
+        notes.append(
+            "waveorder is not installed in this environment, so the published baseline "
+            "is not shown. The classical solve and the learned refinement are unaffected."
+        )
+        include_waveorder = False
+
     if include_waveorder:
         try:
             published, ms = _time(lambda: tie.level(baseline.phase_only(measured, optics)))
