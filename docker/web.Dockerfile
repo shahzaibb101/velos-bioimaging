@@ -8,14 +8,6 @@ FROM node:22-slim AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Next resolves rewrites at build time and bakes them into the standalone
-# output, so the API address has to be present *here*, not only at runtime.
-# A Docker build does not inherit the service environment, so it has to arrive
-# as a build argument or the proxy silently falls back to localhost and every
-# API call 500s in production while working perfectly in development.
-ARG VELOS_API_URL
-ENV VELOS_API_URL=${VELOS_API_URL}
-
 COPY --from=deps /app/node_modules ./node_modules
 COPY web ./
 RUN npm run build
