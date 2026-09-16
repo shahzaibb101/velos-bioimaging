@@ -56,5 +56,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
   CMD curl -fsS "http://127.0.0.1:${PORT}/api/health" || exit 1
 
-# Railway injects PORT; honour it rather than hard-coding.
-CMD ["sh", "-c", "uvicorn velos.service.api:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Bind to :: rather than 0.0.0.0. Railway's private network is IPv6-only, so a
+# service listening on IPv4 alone resolves over internal DNS and then refuses
+# the connection. A dual-stack :: bind serves both the private network and the
+# public edge.
+CMD ["sh", "-c", "uvicorn velos.service.api:app --host :: --port ${PORT:-8000}"]
