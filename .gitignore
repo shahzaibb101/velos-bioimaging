@@ -1,0 +1,38 @@
+# --- environments -----------------------------------------------------------
+server/.venv*/
+**/__pycache__/
+*.py[cod]
+node_modules/
+.next/
+out/tsc.txt
+
+# --- generated training data ------------------------------------------------
+# 2.4 GB of paired fields. Regenerate with:
+#   python -m velos.training.build_dataset
+server/data/*.npy
+server/data/*_meta.json
+
+# --- training artefacts -----------------------------------------------------
+# Checkpoints are large and reproducible. The exported ONNX in server/models is
+# what the service actually loads, and that IS committed, along with the card
+# generated beside it.
+server/checkpoints/
+server/out/
+server/models/*.pt
+
+# --- python build artefacts -------------------------------------------------
+*.egg-info/
+build/
+dist/
+
+# --- third-party reference material ----------------------------------------
+# Design extraction working files, including assets belonging to the site that
+# was used as a visual reference. Not ours to redistribute, and not needed to
+# build or run anything here.
+reference/
+
+# --- local ------------------------------------------------------------------
+.DS_Store
+.env
+.env.local
+*.log

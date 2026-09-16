@@ -1,0 +1,176 @@
+/* ============================================================================
+   Reconstruction app
+
+   Runs on the ink surface rather than the bone canvas. The whole screen is
+   about looking at dark scientific imagery, and a light page around it would
+   drag the eye out of the data and reset it on every glance.
+   ========================================================================== */
+
+.app { background: var(--color-ink); color: #fff; min-height: 100vh; padding-block: 148px 120px; }
+
+.app__head { display: flex; flex-direction: column; gap: 20px; margin-bottom: 60px; max-width: 760px; }
+.app .label { --label-bg: rgba(255,255,255,0.1); --label-fg: #fff; }
+.app__title { font-size: var(--text-heading-md); line-height: 1.1; }
+.app__lead { color: rgba(255,255,255,0.7); font-size: var(--text-body); line-height: 1.3; }
+
+.app__sources { display: grid; gap: var(--gap); margin-bottom: 48px; }
+@media (min-width: 1025px) { .app__sources { grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); } }
+
+.app__samples { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 769px) { .app__samples { grid-template-columns: repeat(2, 1fr); } }
+
+.sample, .upload {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  text-align: left;
+  transition: background-color 0.3s var(--ease-house), border-color 0.3s var(--ease-house);
+}
+.sample:hover:not(:disabled), .upload:hover { background: rgba(255,255,255,0.08); border-color: var(--color-lime); }
+.sample:disabled { cursor: not-allowed; opacity: 0.45; }
+.sample__title, .upload__title { font-size: var(--text-title); line-height: 1.2; }
+.sample__blurb { color: rgba(255,255,255,0.6); font-size: 15px; line-height: 1.35; }
+.sample__meta, .upload__hint {
+  color: rgba(255,255,255,0.4); font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: 0; line-height: 1.4; margin-top: auto; padding-top: 8px;
+}
+.upload { cursor: pointer; justify-content: center; }
+.upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+
+.app__error {
+  background: rgba(255, 120, 120, 0.12); border: 1px solid rgba(255,120,120,0.4);
+  border-radius: 12px; color: #ffc9c9; font-size: var(--text-body); margin-bottom: 32px; padding: 16px 20px;
+}
+
+/* --- progress ------------------------------------------------------------- */
+.progress { margin-bottom: 48px; }
+.progress__bar { background: rgba(255,255,255,0.15); height: 2px; overflow: hidden; position: relative; width: 100%; }
+.progress__bar span {
+  background: var(--color-lime); display: block; height: 100%; width: 100%;
+  transform-origin: 0 50%; transition: transform 0.4s var(--ease-house);
+}
+.progress__stage {
+  color: rgba(255,255,255,0.7); display: flex; font-family: var(--font-mono);
+  font-size: var(--text-label); justify-content: space-between; letter-spacing: 0;
+  margin-top: 12px; text-transform: uppercase;
+}
+.progress__pct { color: var(--color-lime); }
+
+/* --- viewer --------------------------------------------------------------- */
+.app__viewer { margin-bottom: 40px; }
+/* The field is square, so left to itself the viewer becomes as tall as the
+   content column is wide and you can only ever see a slice of it. Capping it
+   against the viewport keeps the whole field on screen, which is the point:
+   this is a comparison, and you cannot compare what you have to scroll past. */
+.viewer__frame {
+  aspect-ratio: 1 / 1;
+  background: #000;
+  border-radius: 16px;
+  cursor: grab;
+  margin-inline: auto;
+  max-height: 74vh;
+  max-width: min(100%, 74vh);
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  user-select: none;
+  width: 100%;
+}
+.viewer__controls, .viewer__hint, .colorbar { margin-inline: auto; max-width: min(100%, 74vh); }
+.viewer__frame[data-near="true"] { cursor: ew-resize; }
+.viewer__frame:active { cursor: grabbing; }
+.viewer__layer {
+  display: block; height: 100%; left: 0; object-fit: cover;
+  position: absolute; top: 0; width: 100%; transform-origin: center;
+}
+
+.viewer__divider { background: rgba(255,255,255,0.85); bottom: 0; position: absolute; top: 0; width: 1px; }
+.viewer__handle {
+  background: var(--color-lime); border-radius: 999px; height: 44px;
+  left: 50%; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 4px;
+}
+.viewer__tag, .viewer__zoom {
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); border-radius: 8px;
+  color: #fff; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0;
+  padding: 7px 10px; position: absolute; text-transform: uppercase; top: 12px;
+}
+.viewer__tag--left { left: 12px; }
+.viewer__tag--right { right: 12px; }
+.viewer__zoom { bottom: 12px; left: 12px; top: auto; color: var(--color-lime); }
+
+.viewer__controls { align-items: center; display: flex; gap: 16px; margin-top: 16px; }
+.viewer__slider { flex: 1 1 auto; }
+.viewer__slider input { accent-color: var(--color-lime); width: 100%; }
+.viewer__reset, .chip {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 8px; color: #fff; font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: 0; padding: 8px 12px; text-transform: uppercase;
+  transition: background-color 0.25s var(--ease-house), border-color 0.25s var(--ease-house);
+}
+.viewer__reset:hover, .chip:hover { background: rgba(255,255,255,0.14); border-color: var(--color-lime); }
+.chip.is-active { background: var(--color-lime); border-color: var(--color-lime); color: var(--color-ink); }
+.viewer__hint { color: rgba(255,255,255,0.4); font-size: 14px; line-height: 1.4; margin-top: 12px; }
+
+.app__layers { display: grid; gap: 16px; margin-top: 24px; }
+@media (min-width: 769px) { .app__layers { grid-template-columns: repeat(2, 1fr); } }
+.app__layerlabel {
+  color: rgba(255,255,255,0.4); display: block; font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: 0; margin-bottom: 8px; text-transform: uppercase;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.colorbar { align-items: center; display: flex; gap: 10px; margin-top: 20px; }
+.colorbar__ramp {
+  border-radius: 3px; flex: 1 1 auto; height: 8px; max-width: 320px;
+  background: linear-gradient(90deg, #000 0%, #16211f 22%, #222f30 42%, #445e5f 62%, #a7e26e 82%, #cef79e 100%);
+}
+.colorbar__tick, .colorbar__unit {
+  color: rgba(255,255,255,0.55); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0;
+}
+.colorbar__unit { color: rgba(255,255,255,0.35); }
+
+/* --- tables --------------------------------------------------------------- */
+.scorecard, .cells { margin-bottom: 40px; }
+.scorecard table, .cells table { border-collapse: collapse; font-size: 15px; width: 100%; }
+.scorecard caption, .cells__sub {
+  color: rgba(255,255,255,0.45); font-size: 14px; line-height: 1.4;
+  margin-bottom: 16px; text-align: left;
+}
+.scorecard th, .scorecard td, .cells th, .cells td {
+  border-bottom: 1px solid rgba(255,255,255,0.1); padding: 14px 12px; text-align: right;
+}
+.scorecard th[scope="row"], .cells td:first-child, .cells th:first-child { text-align: left; }
+.scorecard thead th, .cells thead th {
+  color: rgba(255,255,255,0.4); font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: 0; text-transform: uppercase;
+}
+.scorecard th[scope="row"] { font-weight: 400; max-width: 340px; }
+.scorecard__detail { color: rgba(255,255,255,0.4); display: block; font-size: 13px; line-height: 1.35; margin-top: 4px; }
+.scorecard tr.is-primary td, .scorecard tr.is-primary th { background: rgba(206,247,158,0.07); }
+.scorecard tr.is-primary th[scope="row"]::after {
+  background: var(--color-lime); border-radius: 999px; color: var(--color-ink);
+  content: "shown"; font-family: var(--font-mono); font-size: 10px; margin-left: 8px;
+  padding: 2px 6px; text-transform: uppercase; vertical-align: middle;
+}
+
+.cells__head { align-items: flex-end; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; margin-bottom: 8px; }
+.cells__title { font-size: var(--text-title); line-height: 1.2; }
+.cells__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cells__scroll { max-height: 420px; overflow-y: auto; }
+.cells td.is-figure { color: var(--color-lime); }
+
+.app__note {
+  border-left: 2px solid var(--color-lime); color: rgba(255,255,255,0.7);
+  font-size: var(--text-body); line-height: 1.4; margin-bottom: 40px;
+  max-width: 820px; padding-left: 20px;
+}
+.app__note em { color: #fff; font-style: normal; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}

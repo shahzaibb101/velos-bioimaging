@@ -1,0 +1,854 @@
+/* ============================================================================
+   Buttons
+
+   Four variants sharing one idea: a rounded "blob" holding an arrow, optionally
+   preceded by a label whose trailing edge is a separate SVG corner so that the
+   label and the blob read as one continuous cut shape with a notch between them.
+
+   Two things are doing the work on hover:
+
+   1. The corner and blob paths are morphed (GSAP MorphSVG) between two hand-
+      drawn states, so the notch physically leans as the button is entered.
+   2. The arrow is two copies of the same 10x10 glyph layered as background
+      images, slid by animating background-position. One arrow exits while the
+      next enters, which reads as the arrow advancing rather than repeating.
+   ========================================================================== */
+
+.btn {
+  --btn-duration: 0.6s;
+  --btn-ease: var(--ease-roll);
+  --blob-scale: 0.875;
+  --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='none' viewBox='0 0 10 10'%3E%3Cpath fill='%23222F30' d='M7.703 5.8H.398V4.6h7.305l-3.36-3.36.855-.84 4.8 4.8-4.8 4.8-.855-.84 3.36-3.36Z'/%3E%3C/svg%3E");
+  --arrow-alt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='none' viewBox='0 0 10 10'%3E%3Cpath fill='%23fff' d='M7.703 5.8H.398V4.6h7.305l-3.36-3.36.855-.84 4.8 4.8-4.8 4.8-.855-.84 3.36-3.36Z'/%3E%3C/svg%3E");
+  align-items: stretch;
+  background: transparent;
+  display: inline-flex;
+  position: relative;
+  user-select: none;
+  width: fit-content;
+}
+
+.btn svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+.btn svg path {
+  transition: fill var(--btn-duration) var(--btn-ease);
+}
+
+.btn__label {
+  align-items: center;
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0;
+  line-height: 1;
+  position: relative;
+  text-transform: uppercase;
+  transition: background-color var(--btn-duration) var(--btn-ease),
+              color var(--btn-duration) var(--btn-ease),
+              margin-inline-end var(--btn-duration) var(--btn-ease),
+              padding-right var(--btn-duration) var(--btn-ease);
+}
+
+.btn__corner {
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -16px;
+  width: 18px;
+  height: 100%;
+}
+
+.btn__icon {
+  display: inline-flex;
+  height: 100%;
+  overflow: hidden;
+  padding: 10px;
+  position: relative;
+  transform: scale(1);
+  transform-origin: right center;
+  transition: transform var(--btn-duration) var(--btn-ease);
+  width: 51px;
+}
+
+/* The two stacked arrows. Hover slides the pair so the second takes the
+   first's place, which is why both images are declared at once. */
+.btn__icon::before {
+  background-image: var(--arrow-alt), var(--arrow);
+  background-repeat: no-repeat;
+  background-size: 10px 10px;
+  background-position: var(--arrow-pos, center left -150%, center left 50%);
+  content: "";
+  position: absolute;
+  inset: 0 0 0 4px;
+  width: calc(100% - 4px);
+  transition: background-position var(--btn-duration) var(--btn-ease);
+  z-index: 2;
+}
+
+/* --- Variant 1: label pill + corner + blob -------------------------------- */
+.btn--primary { height: 48px; }
+.btn--primary .btn__label {
+  background: var(--color-ink);
+  border-radius: 12px 0 0 12px;
+  color: #fff;
+  margin-right: 16px;
+  padding: 8px 8px 8px 20px;
+}
+.btn--primary .btn__corner path { fill: var(--color-ink); }
+.btn--primary .btn__icon path { fill: var(--color-lime); }
+
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover .btn__label {
+    background-color: var(--color-lime);
+    color: var(--color-ink);
+    margin-right: 12px;
+    padding-right: 14px;
+  }
+  .btn--primary:hover .btn__corner path { fill: var(--color-lime); }
+  .btn--primary:hover .btn__icon { transform: scale(var(--blob-scale)); }
+  .btn--primary:hover .btn__icon path { fill: var(--color-ink); }
+  .btn--primary:hover .btn__icon::before { --arrow-pos: center left 50%, center left 150%; }
+}
+
+/* On a dark surface the label inverts so the button still reads as a cut shape. */
+.btn--primary.is-on-dark .btn__label { background: #fff; color: var(--color-ink); }
+.btn--primary.is-on-dark .btn__corner path { fill: #fff; }
+
+/* --- Variant 2: blob only ------------------------------------------------- */
+.btn--blob { height: 48px; width: 48px; align-items: center; justify-content: center; }
+.btn--blob .btn__icon {
+  padding: 10px;
+  transform-origin: center center;
+  width: 100%;
+}
+.btn--blob .btn__icon::before {
+  inset: 0;
+  width: 100%;
+  background-position: var(--arrow-pos, center left calc((100% + 22px) * -1), center left calc(0% + 22px));
+}
+.btn--blob .btn__icon path { fill: var(--color-lime); }
+@media (hover: hover) and (pointer: fine) {
+  .btn--blob:hover .btn__icon { transform: scale(var(--blob-scale)); }
+  .btn--blob:hover .btn__icon path { fill: var(--color-ink); }
+  .btn--blob:hover .btn__icon::before {
+    --arrow-pos: center left calc(0% + 22px), center left calc(100% + 22px);
+  }
+}
+
+/* --- Variant 3: solid rect, text rolls up -------------------------------- */
+.btn--solid {
+  align-items: center;
+  background: var(--color-ink);
+  border-radius: 12px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  height: 46px;
+  letter-spacing: 0;
+  line-height: 1;
+  overflow: hidden;
+  padding: 8px 20px;
+  text-transform: uppercase;
+  transition: background-color 0.1s var(--ease-swap) 0.1s;
+}
+.btn--solid .btn__label {
+  background: none;
+  padding: 0;
+  margin: 0;
+  transition: transform 0.3s var(--ease-swap);
+}
+/* The incoming copy is generated from the label rather than duplicated in the
+   markup, so the two can never drift apart. */
+.btn--solid::after {
+  align-items: center;
+  background: var(--color-lichen);
+  border-radius: inherit;
+  color: var(--color-ink);
+  content: attr(data-label);
+  display: flex;
+  font-size: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  padding: inherit;
+  position: absolute;
+  inset: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  text-transform: uppercase;
+  transform: translateY(100%);
+  transition: transform 0.3s var(--ease-swap);
+  z-index: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn--solid:hover { background: var(--color-lichen); transition-delay: 0.15s; }
+  .btn--solid:hover .btn__label { transform: translateY(-12px); }
+  .btn--solid:hover::after { transform: translateY(0); }
+}
+
+/* --- Variant 4: label + blob, no corner ---------------------------------- */
+.btn--text { height: 42px; column-gap: 7px; overflow: hidden; }
+.btn--text .btn__label { color: inherit; padding: 0; }
+.btn--text .btn__corner { display: none; }
+.btn--text .btn__icon path { fill: var(--color-lime); }
+.btn--text .btn__icon::before { width: calc(100% - 8px); }
+@media (hover: hover) and (pointer: fine) {
+  .btn--text:hover .btn__icon { transform: scale(var(--blob-scale)); }
+  .btn--text:hover .btn__icon path { fill: var(--color-ink); }
+  .btn--text:hover .btn__icon::before { --arrow-pos: center left 50%, center left 150%; }
+}
+
+/* ============================================================================
+   Header
+
+   Fixed, and deliberately not a solid bar. On desktop it is two floating
+   islands (logo, menu) over the content; the logo only acquires its own
+   backing plate once the page has scrolled, so at rest the hero reads as
+   full-bleed. The logo fill inverts while a dark section is behind it.
+   ========================================================================== */
+
+.header { position: fixed; inset: 30px 0 auto; z-index: 100; pointer-events: none; }
+@media (max-width: 1024px) { .header { inset: 20px 20px auto; } }
+
+.header__inner {
+  align-items: center;
+  column-gap: 20px;
+  display: flex;
+  height: 54px;
+  justify-content: space-between;
+  width: 100%;
+}
+@media (max-width: 1024px) {
+  .header__inner {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    height: 64px;
+    padding: 0 8px 0 12px;
+    pointer-events: auto;
+  }
+}
+
+.header__logo {
+  display: inline-flex;
+  flex: 0 0 auto;
+  max-width: 176px;
+  pointer-events: auto;
+  position: relative;
+  transform: translate(0);
+  transform-origin: left center;
+  transition: transform 0.6s var(--ease-house);
+  width: 100%;
+}
+/* The plate that fades in behind the logo on scroll. */
+.header__logo::before {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(34, 47, 48, 0.05);
+  border-radius: 12px;
+  content: "";
+  height: 54px;
+  left: 50%;
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.975, 0.75);
+  transform-origin: left center;
+  transition: opacity 0.6s var(--ease-house), transform 0.6s var(--ease-house),
+              border-color 0.6s var(--ease-house);
+  width: calc(100% + 28px);
+  z-index: 0;
+}
+/* The mark keeps its intrinsic size. A width:100% here (which is what you want
+   for a single full-width wordmark SVG) stretches a small mark to the whole
+   lockup width instead. The mark is stroked, not filled, so currentColor is
+   what carries --logo-fill through. */
+.header__logo svg { flex: 0 0 auto; height: auto; position: relative; width: auto; z-index: 1; }
+
+@media (min-width: 1025px) {
+  html.has-scrolled .header__logo { transform: translate(14px); }
+  html.has-scrolled .header__logo::before { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  /* Scrolled over a light section: white plate, ink logo. */
+  html.has-scrolled .header { --logo-fill: var(--color-ink); }
+
+  /* Scrolled over a dark section: the same white plate would swallow a white
+     logo, so the plate inverts with it. The reference simply forces the ink
+     fill here, which reads as a light chip floating on black; carrying the
+     surface through is truer to the rest of the system. */
+  html.invert-logo .header { --logo-fill: #fff; }
+  html.invert-logo.has-scrolled .header { --logo-fill: #fff; }
+  /* A translucent *white* scrim over a bright background gets brighter, not
+     dimmer, and white text on it vanishes. Over dark sections the plate has to
+     be a dark scrim so it guarantees contrast for the white mark regardless of
+     what the video is doing underneath. */
+  html.invert-logo .header__logo::before {
+    background: rgba(10, 16, 16, 0.55);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+}
+
+.header__nav {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 54px;
+  pointer-events: auto;
+}
+@media (min-width: 1025px) {
+  .header__nav {
+    background: var(--nav-bg, rgba(255, 255, 255, 0.8));
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--nav-border, rgba(34, 47, 48, 0.05));
+    border-radius: 12px;
+    color: var(--nav-fg, var(--color-ink));
+    column-gap: 12px;
+    padding: 4px 4px 4px 12px;
+    transition: background-color 0.4s var(--ease-house), color 0.4s var(--ease-house),
+                border-color 0.4s var(--ease-house);
+  }
+  html.invert-logo .header__nav {
+    --nav-bg: rgba(10, 16, 16, 0.55);
+    --nav-border: rgba(255, 255, 255, 0.18);
+    --nav-fg: #fff;
+  }
+  html.invert-logo .header__link:hover { background-color: rgba(255, 255, 255, 0.12); }
+}
+
+.header__menu { column-gap: 1px; display: none; }
+@media (min-width: 1025px) { .header__menu { display: inline-flex; } }
+
+.header__link {
+  align-items: center;
+  border-radius: 8px;
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  height: 39px;
+  letter-spacing: 0;
+  line-height: 1;
+  padding: 8px 17px;
+  text-transform: uppercase;
+  transition: background-color 0.6s var(--ease-house), color 0.6s var(--ease-house);
+}
+.header__link.is-active,
+.header__link:hover { background-color: var(--color-bone); }
+
+/* Burger: two hairlines that converge into an X. */
+.header__toggle {
+  align-items: center;
+  background: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  border-radius: 12px;
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: background-color 0.6s var(--ease-house), border-color 0.6s var(--ease-house);
+  width: 48px;
+}
+@media (min-width: 1025px) { .header__toggle { display: none; } }
+.header__toggle span {
+  background: var(--color-lime-deep);
+  display: block;
+  height: 1px;
+  margin: auto;
+  position: absolute;
+  inset: 0;
+  transition: background-color 0.6s var(--ease-house), transform 0.6s var(--ease-house);
+  width: 24px;
+}
+.header__toggle span:nth-child(1) { transform: translateY(-3px); }
+.header__toggle span:nth-child(2) { transform: translateY(3px); }
+
+[data-nav="open"] .header__toggle { background: transparent; border-color: var(--color-lime-deep); }
+[data-nav="open"] .header__toggle span { background: #fff; width: 19px; }
+[data-nav="open"] .header__toggle span:nth-child(1) { transform: rotate(45deg) !important; }
+[data-nav="open"] .header__toggle span:nth-child(2) { transform: rotate(-45deg) !important; }
+
+/* Full-screen menu, expanding out of the header pill. */
+.header__popup {
+  background: var(--color-ink);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 64px;
+  inset: 20px 20px auto;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  transition: all 0.6s var(--ease-house) 0.6s;
+  visibility: hidden;
+  z-index: 99;
+}
+[data-nav="open"] .header__popup {
+  height: calc(100% - 16px);
+  inset: 8px;
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0s;
+  visibility: visible;
+}
+.header__popup-menu {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 76px;
+  row-gap: 12px;
+}
+.header__popup-link {
+  color: #fff;
+  display: inline-flex;
+  font-size: 2.875rem;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  overflow: hidden;
+  position: relative;
+}
+.header__popup-link span {
+  display: block;
+  transform: translateY(-105%);
+  transition: transform 0.6s var(--ease-roll);
+}
+[data-nav="open"] .header__popup-link span { transform: translateY(0); }
+[data-nav="open"] .header__popup li:nth-child(1) .header__popup-link span { transition-delay: 0.3s; }
+[data-nav="open"] .header__popup li:nth-child(2) .header__popup-link span { transition-delay: 0.4s; }
+[data-nav="open"] .header__popup li:nth-child(3) .header__popup-link span { transition-delay: 0.5s; }
+[data-nav="open"] .header__popup li:nth-child(4) .header__popup-link span { transition-delay: 0.6s; }
+
+.header__popup-cta {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 60px;
+}
+.header__popup-cta a {
+  color: #fff;
+  display: inline-flex;
+  font-size: 1.25rem;
+  line-height: 1;
+  overflow: hidden;
+  padding-bottom: 0.2em;
+  position: relative;
+}
+.header__popup-cta a::after {
+  background: var(--color-lime);
+  bottom: 0;
+  content: "";
+  height: 1px;
+  left: 0;
+  position: absolute;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.3s var(--ease-house);
+  width: 100%;
+}
+[data-nav="open"] .header__popup-cta a::after { transform: scaleX(1); transition-delay: 0.8s; }
+[data-nav="open"] .header__popup-cta a span { transition-delay: 0.8s; }
+
+/* Logo lockup: mark + wordmark, both inheriting --logo-fill. */
+.logo { align-items: center; color: var(--logo-fill, var(--color-ink)); display: inline-flex; gap: 8px; position: relative; z-index: 1;
+        transition: color 0.3s var(--ease-house); }
+.logo svg { flex: 0 0 auto; height: 21px; width: 21px; }
+/* The logo plate is a positioned ::before carrying a backdrop-filter, which
+   makes it a composited layer painted above any sibling without its own
+   stacking context. The mark has z-index:1 and survives; this text did not,
+   so the plate was painting straight over the wordmark. */
+.logo__word { font-size: 18px; letter-spacing: -0.035em; line-height: 1; position: relative;
+              white-space: nowrap; z-index: 1; }
+.logo__word-light { opacity: 0.55; }
+@media (min-width: 1025px) { .header__cta { display: inline-flex; } }
+@media (max-width: 1024px) { .header__cta { display: none; } }
+
+/* ============================================================================
+   Hero
+
+   Two stacked 100lvh panels over one pinned background. The background is
+   inset from the viewport edge with a radius, and un-insets to full bleed as
+   you scroll, so the page appears to open outward rather than simply scroll.
+
+   100lvh rather than 100vh: on mobile Safari 100vh is the *largest* viewport
+   height, so a hero sized with it is taller than the screen at rest and the
+   bottom row sits under the browser chrome.
+   ========================================================================== */
+
+.hero { background: var(--color-void); color: #fff; position: relative; }
+
+.hero__panel { height: 100lvh; position: relative; z-index: 1; }
+
+.hero__inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  padding-bottom: clamp(32px, 26.72px + 1.2vw, 44px);
+  padding-top: clamp(112px, 96.16px + 3.6vw, 148px);
+  row-gap: 100px;
+}
+
+.hero__heading {
+  font-size: var(--text-hero);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  max-width: 1070px;
+  text-wrap: pretty;
+}
+
+.hero__bottom {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 24px var(--gap);
+  width: 100%;
+}
+@media (min-width: 1025px) { .hero__bottom { align-items: flex-end; flex-direction: row; justify-content: space-between; } }
+
+.hero__lead {
+  font-size: var(--text-lead);
+  line-height: 1.2;
+  max-width: 640px;
+  text-wrap: pretty;
+}
+
+/* SplitText's line masks clip with overflow:hidden, which also amputates
+   descenders — the "g" in "imaging" loses its tail. Swapping to a clip-path
+   with a negative inset keeps the mask horizontally tight while giving the
+   glyphs vertical room. The reference ships exactly this fix. */
+.hero__heading .line-mask,
+.hero__lead .line-mask,
+.hero__statement .line-mask {
+  clip-path: inset(-0.12em 0);
+  overflow: initial !important;
+}
+
+/* --- Pinned statement scroller ------------------------------------------- */
+.hero__scroller { height: 100lvh; padding-top: 70px; position: relative; z-index: 1; }
+.hero__scroller-inner { display: flex; flex-direction: column; height: 100%; justify-content: center;
+                        padding-bottom: clamp(48px, 40px + 1vw, 72px); padding-top: 24px; }
+
+.hero__eyebrow {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  gap: 8px;
+  letter-spacing: 0;
+  line-height: 1;
+  margin-bottom: 44px;
+  padding: 9px 14px;
+  text-transform: uppercase;
+  width: fit-content;
+}
+.hero__eyebrow::before { background: var(--color-lime); border-radius: 50%; content: ""; height: 6px; width: 6px; }
+
+.hero__progress { background: rgba(255, 255, 255, 0.2); height: 1px; overflow: hidden; position: relative; width: 100%; }
+.hero__progress span {
+  background: #fff; height: 100%; left: 0; position: absolute; top: 0; width: 100%;
+  transform: scaleX(0); transform-origin: 0% 50%;
+}
+
+.hero__statements { align-items: flex-start; display: flex; flex-direction: column; gap: 44px var(--gap);
+                    padding-top: 32px; width: 100%; }
+@media (min-width: 1025px) {
+  .hero__statements { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+}
+
+.hero__index {
+  align-items: stretch;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: 1;
+  padding: 12px 17px;
+  width: fit-content;
+}
+.hero__index > * { align-items: center; display: inline-flex; justify-content: center; min-width: 20px; }
+.hero__index i { color: rgba(255, 255, 255, 0.3); font-style: normal; }
+
+/* All statements occupy the same grid cell, so the stage sizes itself to the
+   tallest one and the others stack behind it. Absolute positioning would
+   collapse the stage to zero height and drop the text out of the layout. */
+.hero__stage { display: grid; position: relative; width: 100%; }
+.hero__statement { grid-area: 1 / 1; opacity: 0; width: 100%; }
+.hero__statement p { font-size: var(--text-statement); line-height: 1.1; text-wrap: pretty; }
+.hero__statement .char { display: inline-block; opacity: 0.4; }
+
+/* --- Background ----------------------------------------------------------- */
+.hero__background { height: 100lvh; left: 0; position: absolute; top: 0; width: 100%; z-index: 0; }
+
+.hero__frame {
+  border-radius: 20px;
+  height: calc(100lvh - 16px);
+  inset: 8px;
+  overflow: hidden;
+  position: absolute;
+  width: calc(100% - 16px);
+}
+@media (min-width: 1025px) {
+  .hero__frame { height: calc(100lvh - 24px); inset: 12px; width: calc(100% - 24px); }
+}
+
+/* Starts as a capsule the size of a full stop, centred, and opens outward. */
+.hero__canvas {
+  background: #000;
+  clip-path: inset(50% round 100px);
+  height: 100%;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+}
+@media (min-width: 1025px) { .hero__canvas { clip-path: inset(50% round 200px); } }
+
+/* The media wrapper carries the scroll-driven opacity and scale; the video
+   inside carries the pointer-driven tilt. Keeping them on separate elements
+   means the rAF loop writing transforms every frame cannot be stamped on by
+   ScrollTrigger, and vice versa. */
+.hero__media {
+  height: 100%;
+  inset: 0;
+  opacity: 0.875;
+  perspective: 1200px;
+  position: absolute;
+  width: 100%;
+}
+.hero__canvas video {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center;
+  position: absolute;
+  transform: scale(1.08);
+  transform-origin: center;
+  width: 100%;
+  will-change: transform;
+}
+/* Safari paints the poster with its own fit rules unless told otherwise. */
+.hero__canvas video::poster { object-fit: cover; }
+
+/* Cursor-anchored scrim. Doubles as the vignette that keeps the headline
+   legible wherever the brightest cells happen to drift. */
+.hero__scrim {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+  background: radial-gradient(60% 55% at 50% 50%,
+    rgba(206, 247, 158, 0.10) 0%, rgba(206, 247, 158, 0.03) 35%,
+    rgba(0, 0, 0, 0.35) 78%, rgba(0, 0, 0, 0.6) 100%);
+}
+
+/* ============================================================================
+   Section furniture
+   ========================================================================== */
+
+.section { background: var(--section-bg, transparent); color: var(--section-fg, inherit); }
+.section--bone { --section-bg: var(--color-bone); }
+.section--frost { --section-bg: var(--color-frost); }
+.section--ink { --section-bg: var(--color-ink); --section-fg: #fff; }
+.section--round { border-radius: 40px 40px 0 0; }
+
+.label {
+  align-items: center;
+  background: var(--label-bg, #fff);
+  border-radius: 999px;
+  color: var(--label-fg, var(--color-ink));
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  gap: 8px;
+  letter-spacing: 0;
+  line-height: 1;
+  padding: 9px 14px;
+  text-transform: uppercase;
+  width: fit-content;
+}
+.label::before { background: var(--color-lime); border-radius: 50%; content: ""; height: 6px; width: 6px; }
+.section--ink .label { --label-bg: rgba(255, 255, 255, 0.1); --label-fg: #fff; }
+
+/* The 12px bordered cap that sits on top of a column. Purely typographic
+   punctuation: it marks where a column begins without drawing a full rule. */
+.ascent { padding-top: 48px; position: relative; }
+.ascent::before {
+  border: 1px solid currentColor;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  content: "";
+  height: 12px;
+  left: 0;
+  opacity: 0.1;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+/* --- Statement block (label + heading + body + action) -------------------- */
+.statement__inner { display: flex; flex-direction: column; gap: 44px var(--gap);
+                    padding-bottom: 80px; padding-top: 60px; }
+@media (min-width: 1025px) {
+  .statement__inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: start; }
+  .statement--split .statement__inner { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+.statement__body { display: flex; flex-direction: column; row-gap: clamp(20px, 2.4px + 4vw, 60px); }
+.statement__heading { font-size: var(--text-heading); line-height: 1.1; text-wrap: balance; }
+.statement__heading em { color: var(--color-lichen); font-style: normal; }
+.statement__text { color: color-mix(in srgb, currentColor 80%, transparent);
+                   font-size: var(--text-body); line-height: 1.3; max-width: 790px; text-wrap: pretty; }
+
+/* --- Capability cards ----------------------------------------------------- */
+.cards { display: grid; grid-template-columns: 1fr; }
+@media (min-width: 1025px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+
+.card {
+  background: var(--card-bg, var(--color-frost));
+  color: var(--card-fg, var(--color-ink));
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  justify-content: flex-end;
+  min-height: 280px;
+  overflow: hidden;
+  padding: 24px;
+  position: relative;
+}
+@media (min-width: 1025px) { .card { min-height: 420px; padding: 40px; } }
+.card--dark { --card-bg: var(--color-ink); --card-fg: #fff; }
+.card--teal { --card-bg: var(--color-teal); --card-fg: #fff; }
+
+.card__index {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0;
+  line-height: 1;
+  position: absolute;
+  right: 24px;
+  text-transform: uppercase;
+  top: 24px;
+}
+@media (min-width: 1025px) { .card__index { right: 40px; top: 40px; } }
+
+.card__icon { flex: 1 0 auto; height: 68px; width: 68px; }
+@media (min-width: 1025px) { .card__icon { height: 114px; width: 114px; } }
+.card__icon svg { height: 100%; width: 100%; }
+
+.card__content { display: flex; flex-direction: column; gap: 16px; }
+.card__heading { font-size: var(--text-card); line-height: 1.1; text-wrap: pretty; }
+.card__text { font-size: var(--text-body); line-height: 1.3; opacity: 0.7; text-wrap: pretty; }
+
+/* --- Marquee -------------------------------------------------------------- */
+.marquee-block { padding-block: 70px; }
+@media (min-width: 1025px) { .marquee-block { padding-block: 160px; } }
+.marquee { overflow: hidden; position: relative; width: 100vw; }
+.marquee__scroll { display: flex; position: relative; width: 100%; will-change: transform; }
+.marquee__set { display: flex; position: relative; will-change: transform; }
+.marquee__item { align-items: center; display: flex; }
+.marquee__item p {
+  font-size: var(--text-marquee);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  padding-bottom: 0.1em;
+  white-space: nowrap;
+}
+.marquee__item p span { color: var(--color-lichen); }
+
+/* The solid CTA sits inside the nav pill, so it inverts with it: on a dark
+   section it becomes the light element rather than a dark block on dark. */
+@media (min-width: 1025px) {
+  html.invert-logo .btn--solid { background: #fff; color: var(--color-ink); }
+  html.invert-logo .btn--solid::after { background: var(--color-lime); color: var(--color-ink); }
+}
+
+/* ============================================================================
+   Footer
+
+   Pure black, a deeper note than the ink used in content sections, so the page
+   reads as having ended rather than merely stopped. An oversized wordmark
+   spans the full column: the last thing on the page is the name at a size it
+   is never allowed anywhere else.
+   ========================================================================== */
+
+.footer { background: var(--color-void); color: #fff; position: relative; overflow: hidden; }
+.footer__inner { padding-block: clamp(60px, 42.4px + 4vw, 100px) 24px; position: relative; z-index: 1; }
+
+.footer__main { display: flex; flex-direction: column; gap: 60px; }
+@media (min-width: 1025px) {
+  .footer__main { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 48px var(--grid-gap); }
+}
+
+.footer__heading { font-size: var(--text-heading-sm); line-height: 1.1; max-width: 640px; text-wrap: balance; }
+.footer__heading em { color: var(--color-lichen); font-style: normal; }
+.footer__cta { margin-top: 40px; }
+
+.footer__info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px var(--gap); }
+.footer__col-label {
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0;
+  line-height: 1;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.footer__col li + li { margin-top: 12px; }
+.footer__link {
+  display: inline-flex;
+  font-size: var(--text-body);
+  line-height: 1.3;
+  padding-bottom: 2px;
+  position: relative;
+}
+/* Underline retracts on hover rather than extending. The link is already
+   marked; hovering confirms it by clearing the mark away. */
+.footer__link::after {
+  background: var(--color-lime);
+  bottom: 0; content: ""; height: 1px; left: 0; position: absolute;
+  transform: scaleX(1); transform-origin: left center;
+  transition: transform 0.3s var(--ease-house); width: 100%;
+}
+.footer__link:hover::after { transform: scaleX(0); }
+
+.footer__bottom {
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  justify-content: space-between;
+  margin-top: 80px;
+  padding-top: 24px;
+}
+.footer__meta {
+  color: rgba(255, 255, 255, 0.4);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+
+.footer__wordmark { margin-top: 60px; width: 100%; }
+.footer__wordmark svg { display: block; height: auto; width: 100%; }
+.footer__wordmark svg text { fill: #fff; }
+
+/* A slow field of reconstructed cells behind the footer, heavily dimmed. The
+   reference runs a WebGL shader here; ours is the same imagery as the hero,
+   which keeps the page bracketed by the thing the product actually makes. */
+.footer__backdrop {
+  inset: 0;
+  opacity: 0.18;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+.footer__backdrop img { height: 100%; object-fit: cover; width: 100%; }
+.footer__backdrop::after {
+  background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 55%, #000 100%);
+  content: ""; inset: 0; position: absolute;
+}

@@ -1,0 +1,147 @@
+@import "tailwindcss";
+@import "./components.css";
+@import "./app.css";
+
+/* ============================================================================
+   Velos BioImaging — design system
+
+   Tokens are taken from the live reference implementation via the CSSOM, not
+   from a derived style guide. Where the two disagreed the measured value won:
+   the content column is 1524px rather than 1200px, there are two greens rather
+   than one, and letter-spacing is a flat -0.02em everywhere except the largest
+   display sizes, which sit at -0.03em.
+   ========================================================================== */
+
+@font-face {
+  font-family: "Aspekta";
+  src: url("/fonts/Aspekta-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aspekta";
+  src: url("/fonts/Aspekta-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Roboto Mono";
+  src: url("/fonts/RobotoMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* Surfaces and ink ------------------------------------------------------ */
+  --color-lichen: #c9cbbe;      /* hairlines, muted heading clauses */
+  --color-lime-deep: #a7e26e;   /* menu button icon, active borders */
+  --color-lime: #cef79e;        /* the accent: arrow blobs, underlines, dots */
+  --color-frost: #eeeeee;       /* default card surface, alt section bg */
+  --color-ash: #e4e3e3;
+  --color-bone: #f7f7f5;        /* page canvas */
+  --color-ink: #222f30;         /* text, dark surfaces */
+  --color-mist: #f5f8f7;
+  --color-teal: #445e5f;        /* mid-tone card variant */
+  --color-field: #394546;       /* form input fill */
+  --color-void: #000000;        /* footer only */
+
+  /* Type ------------------------------------------------------------------ */
+  --font-sans: "Aspekta", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Roboto Mono", Menlo, Consolas, Monaco, "Liberation Mono", monospace;
+
+  /* Fluid scale. Every step is clamp(min, preferred, max) and every one of
+     these numbers is measured from the reference, not invented. */
+  --text-hero: clamp(3.125rem, 1.42rem + 6.2vw, 7rem);          /*  50 – 112 */
+  --text-hero-inner: clamp(3.125rem, 0.65rem + 9vw, 8.75rem);   /*  50 – 140 */
+  --text-marquee: clamp(3.375rem, 0.46rem + 10.6vw, 10rem);     /*  54 – 160 */
+  --text-display: clamp(3rem, 1.845rem + 4.2vw, 5.625rem);      /*  48 –  90 */
+  --text-heading: clamp(1.625rem, 0.25rem + 5vw, 4.75rem);      /*  26 –  76 */
+  --text-statement: clamp(1.875rem, 1.105rem + 2.8vw, 3.625rem);/*  30 –  58 */
+  --text-heading-md: clamp(1.1875rem, 0.555rem + 2.3vw, 2.625rem); /* 19 – 42 */
+  --text-heading-sm: clamp(2.125rem, 1.63rem + 1.8vw, 3.25rem); /*  34 –  52 */
+  --text-card: clamp(1.625rem, 1.57rem + 0.2vw, 1.75rem);       /*  26 –  28 */
+  --text-lead: clamp(1.25rem, 1.14rem + 0.4vw, 1.5rem);         /*  20 –  24 */
+  --text-title: clamp(1rem, 0.835rem + 0.6vw, 1.375rem);        /*  16 –  22 */
+  --text-body: clamp(1rem, 0.9175rem + 0.3vw, 1.1875rem);       /*  16 –  19 */
+  --text-label: clamp(0.75rem, 0.695rem + 0.2vw, 0.875rem);     /*  12 –  14 */
+
+  /* Layout ---------------------------------------------------------------- */
+  --container-max: 1524px;
+  --container-pad: 48px;
+  --container-pad-sm: 24px;
+  --grid-gap: 48px;
+  --gap: 20px;
+
+  /* Motion ---------------------------------------------------------------- */
+  --ease-house: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-roll: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-swap: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+:root {
+  --container-padding: var(--container-pad);
+}
+@media (max-width: 1024px) {
+  :root { --container-padding: var(--container-pad-sm); }
+}
+
+/* Base ---------------------------------------------------------------------
+   Single weight by default. Hierarchy comes from size, line-height and
+   tracking, never from weight, which is what gives the reference its flat
+   instrument-panel calm. 600 exists only for inline <strong>. */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-bone);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, p, figure, blockquote { margin: 0; font-weight: 400; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+img, video, svg, canvas { display: block; max-width: 100%; }
+strong, b { font-weight: 600; }
+
+:focus-visible {
+  outline: 4px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
+/* Lenis wants this so its transform does not fight native smooth scrolling. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* Load state. The page paints hidden and reveals once fonts and the intro are
+   ready, which is what stops the hero text flashing unmasked. */
+html.is-loading body { opacity: 0; }
+html.has-loaded body { opacity: 1; transition: opacity 0.3s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

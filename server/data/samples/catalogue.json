@@ -1,0 +1,54 @@
+[
+  {
+    "slug": "confluent-standard",
+    "title": "Adherent culture, standard exposure",
+    "blurb": "A normally exposed field at moderate confluence. The case everything else is compared against.",
+    "exposure": "standard",
+    "photons": 6000.0,
+    "size": 512,
+    "field_um": 166.4,
+    "cells": 31,
+    "median_dry_mass_pg": 147.0,
+    "stack": "confluent-standard.ome.tif",
+    "truth": "confluent-standard.truth.npz"
+  },
+  {
+    "slug": "low-light",
+    "title": "Low light, gentle imaging",
+    "blurb": "One tenth the photon budget, as used when the same cells are imaged every few minutes for a day. This is where the classical solver starts to struggle.",
+    "exposure": "low_light",
+    "photons": 650.0,
+    "size": 512,
+    "field_um": 166.4,
+    "cells": 30,
+    "median_dry_mass_pg": 167.2,
+    "stack": "low-light.ome.tif",
+    "truth": "low-light.truth.npz"
+  },
+  {
+    "slug": "dense-dividing",
+    "title": "Dense field with dividing cells",
+    "blurb": "Higher confluence and more rounded mitotic cells. Thick, optically dense bodies are where phase wrapping appears.",
+    "exposure": "standard",
+    "photons": 6000.0,
+    "size": 512,
+    "field_um": 166.4,
+    "cells": 41,
+    "median_dry_mass_pg": 153.8,
+    "stack": "dense-dividing.ome.tif",
+    "truth": "dense-dividing.truth.npz"
+  },
+  {
+    "slug": "sparse-bright",
+    "title": "Sparse field, bright exposure",
+    "blurb": "Few cells and plenty of light. The easiest case, and the one where every method should agree.",
+    "exposure": "bright",
+    "photons": 18000.0,
+    "size": 512,
+    "field_um": 166.4,
+    "cells": 11,
+    "median_dry_mass_pg": 143.9,
+    "stack": "sparse-bright.ome.tif",
+    "truth": "sparse-bright.truth.npz"
+  }
+]
