@@ -879,3 +879,7 @@
   .page-hero .label { grid-column: 1 / -1; }
   .page-hero__lead { margin-bottom: 8px; }
 }
+
+/* Word wrappers from the character split. They carry no styling of their own;
+   they exist so the browser has a word to break on rather than a character. */
+.hero__statement .word { display: inline-block; white-space: nowrap; }

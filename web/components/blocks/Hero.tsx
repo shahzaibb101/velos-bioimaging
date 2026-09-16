@@ -121,7 +121,19 @@ export default function Hero() {
 
     const splits = items.map((item) => {
       const p = item.querySelector("p")!;
-      const split = new SplitText(p, { type: "lines, chars", linesClass: "line", charsClass: "char", mask: "lines", aria: "none" });
+      // "words" has to be in the split even though nothing styles them.
+      // Splitting straight to chars makes every character its own inline-block,
+      // and the browser will then happily break a line between two of them, so
+      // "away" wraps as "awa / y". Keeping word wrappers gives it something
+      // atomic to break on.
+      const split = new SplitText(p, {
+        type: "lines, words, chars",
+        linesClass: "line",
+        wordsClass: "word",
+        charsClass: "char",
+        mask: "lines",
+        aria: "none",
+      });
       gsap.set(split.chars, { opacity: 0.4 });
       return split;
     });
